@@ -83,7 +83,10 @@ const MOCK_CARDS = {
       ebay_price: '0.50',
       amazon_price: '1.00',
       coolstuffinc_price: '0.30'
-    }]
+    }],
+    banlist_info: {
+      ban_goat: 'Forbidden'
+    }
   },
   
   highATK: [
@@ -122,6 +125,21 @@ globalThis.fetch = async (url: string) => {
     return {
       ok: true,
       json: async () => ({ data: [MOCK_CARDS.darkHole] })
+    };
+  }
+  
+  if (decodedUrl.includes('cardinfo.php?name=Pot') && decodedUrl.includes('Greed')) {
+    return {
+      ok: true,
+      json: async () => ({ data: [{
+        ...MOCK_CARDS.darkMagician,
+        name: 'Pot of Greed',
+        banlist_info: {
+          ban_tcg: 'Forbidden',
+          ban_ocg: 'Forbidden',
+          ban_goat: 'Limited'
+        }
+      }] })
     };
   }
   
@@ -279,6 +297,42 @@ describe('YGO Skill Unit Tests', () => {
       
       expect(card.card_prices).to.be.an('array');
       expect(card.card_prices.length).to.be.greaterThan(0);
+    });
+  });
+  
+  describe('get_banlist_status', () => {
+    it('should return banlist info for banned cards', async () => {
+      const cards = await fetchCards({ name: 'Pot of Greed', misc: 'yes' });
+      expect(cards).to.have.lengthOf(1);
+      expect(cards[0].name).to.equal('Pot of Greed');
+      const banlist = cards[0].banlist_info;
+      
+      expect(banlist).to.not.be.undefined;
+      expect(banlist).to.have.property('ban_tcg');
+      expect(banlist).to.have.property('ban_ocg');
+      expect(banlist).to.have.property('ban_goat');
+      expect(banlist.ban_tcg).to.equal('Forbidden');
+      expect(banlist.ban_ocg).to.equal('Forbidden');
+      expect(banlist.ban_goat).to.equal('Limited');
+    });
+    
+    it('should handle cards with partial banlist info', async () => {
+      const cards = await fetchCards({ name: 'Dark Hole', misc: 'yes' });
+      const banlist = cards[0].banlist_info;
+      
+      expect(banlist).to.not.be.undefined;
+      expect(banlist).to.have.property('ban_goat');
+      expect(banlist.ban_goat).to.equal('Forbidden');
+    });
+    
+    it('should have valid banlist status values', async () => {
+      const cards = await fetchCards({ name: 'Pot of Greed', misc: 'yes' });
+      const banlist = cards[0].banlist_info;
+      const validStatuses = ['Forbidden', 'Limited', 'Semi-Limited', 'Unlimited'];
+      
+      Object.values(banlist).forEach(status => {
+        expect(validStatuses).to.include(status);
+      });
     });
   });
 });

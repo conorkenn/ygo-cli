@@ -1,0 +1,30 @@
+{
+  "name": "ygo-cli",
+  "version": "1.0.0",
+  "description": "Yu-Gi-Oh! Card Database CLI - Search and explore the Yu-Gi-Oh! card database",
+  "main": "cli.js",
+  "bin": {
+    "ygo": "./cli.js"
+  },
+  "scripts": {
+    "test": "node cli.js --help"
+  },
+  "keywords": [
+    "yugioh",
+    "card",
+    "database",
+    "cli",
+    "tcg",
+    "trading-card-game"
+  ],
+  "author": "Conor Kennedy",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/conorkennedy/ygo-cli"
+  },
+  "bugs": {
+    "url": "https://github.com/conorkennedy/ygo-cli/issues"
+  },
+  "homepage": "https://github.com/conorkennedy/ygo-cli"
+}

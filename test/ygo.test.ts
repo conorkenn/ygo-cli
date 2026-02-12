@@ -62,6 +62,10 @@ const MOCK_CARDS = {
       ebay_price: '3.50',
       amazon_price: '5.99',
       coolstuffinc_price: '2.25'
+    }],
+    misc_info: [{
+      md_rarity: 'Ultra Rare',
+      konami_id: 4007
     }]
   },
   
@@ -86,7 +90,11 @@ const MOCK_CARDS = {
     }],
     banlist_info: {
       ban_goat: 'Forbidden'
-    }
+    },
+    misc_info: [{
+      md_rarity: 'Common',
+      konami_id: 23215557
+    }]
   },
   
   highATK: [
@@ -333,6 +341,34 @@ describe('YGO Skill Unit Tests', () => {
       Object.values(banlist).forEach(status => {
         expect(validStatuses).to.include(status);
       });
+    });
+  });
+  
+  describe('get_card_rarity', () => {
+    it('should return rarity info for Blue-Eyes', async () => {
+      const cards = await fetchCards({ name: 'Blue-Eyes', misc: 'yes' });
+      const miscInfo = cards[0].misc_info?.[0];
+      
+      expect(miscInfo).to.not.be.undefined;
+      expect(miscInfo.md_rarity).to.equal('Ultra Rare');
+      expect(miscInfo.konami_id).to.equal(4007);
+    });
+    
+    it('should return rarity info for Dark Hole', async () => {
+      const cards = await fetchCards({ name: 'Dark Hole', misc: 'yes' });
+      const miscInfo = cards[0].misc_info?.[0];
+      
+      expect(miscInfo).to.not.be.undefined;
+      expect(miscInfo.md_rarity).to.equal('Common');
+      expect(miscInfo.konami_id).to.equal(23215557);
+    });
+    
+    it('should have valid rarity values', async () => {
+      const cards = await fetchCards({ name: 'Blue-Eyes', misc: 'yes' });
+      const miscInfo = cards[0].misc_info?.[0];
+      const validRarities = ['Common', 'Rare', 'Super Rare', 'Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Ghost Rare', 'Millennium Rare', 'Parallel Rare'];
+      
+      expect(validRarities).to.include(miscInfo.md_rarity);
     });
   });
 });

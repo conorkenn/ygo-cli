@@ -331,6 +331,63 @@ async function getBanlistStatus(args: any, context: Context) {
   };
 }
 
+async function getCardRarity(args: any, context: Context) {
+  const { name, showImage = true } = args;
+
+  if (!name) {
+    throw new Error('Card name required');
+  }
+
+  const cards = await fetchCards({ misc: 'yes', name });
+
+  if (cards.length === 0) {
+    return { output: `No card found with name "${name}"` };
+  }
+
+  const card = cards[0];
+  const miscInfo = card.misc_info?.[0];
+
+  let rarity = miscInfo?.md_rarity || 'Unknown';
+  const rarityEmojis: Record<string, string> = {
+    'Common': '⚪',
+    'Rare': '🔵',
+    'Super Rare': '🔷',
+    'Ultra Rare': '🟣',
+    'Secret Rare': '🔴',
+    'Ultimate Rare': '🌟',
+    'Ghost Rare': '👻',
+    'Millennium Rare': '💎',
+    'Parallel Rare': '✨',
+    'Unknown': '❓'
+  };
+
+  let output = `**💎 ${card.name}**\n\n`;
+  output += `📦 **Rarity**\n`;
+  output += `━━━━━━━━━━━━━━━━━━━━━\n`;
+  output += `${rarityEmojis[rarity] || '❓'} Master Duel: ${rarity}\n`;
+  
+  if (miscInfo?.konami_id) {
+    output += `\n🆔 Konami ID: ${miscInfo.konami_id}\n`;
+  }
+
+  output += `━━━━━━━━━━━━━━━━━━━━━\n`;
+
+  if (showImage && card.card_images?.[0]?.image_url) {
+    output += `\n${card.card_images[0].image_url}`;
+  }
+
+  output += `\n\n🔗 ${card.ygoprodeck_url || 'https://ygoprodeck.com'}`;
+
+  return {
+    output,
+    card: {
+      name: card.name,
+      rarity,
+      konami_id: miscInfo?.konami_id
+    }
+  };
+}
+
 // Skill definition
 const skill = {
   name: 'yugioh',
@@ -430,6 +487,19 @@ const skill = {
         required: ['name']
       },
       handler: getBanlistStatus
+    },
+    
+    get_card_rarity: {
+      description: 'Get card rarity from Master Duel',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Exact card name' },
+          showImage: { type: 'boolean', description: 'Show card image', default: true }
+        },
+        required: ['name']
+      },
+      handler: getCardRarity
     }
   }
 };

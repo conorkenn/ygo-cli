@@ -271,6 +271,66 @@ async function getCardPrices(args: any, context: Context) {
   };
 }
 
+async function getBanlistStatus(args: any, context: Context) {
+  const { name } = args;
+
+  if (!name) {
+    throw new Error('Card name required');
+  }
+
+  const cards = await fetchCards({ misc: 'yes', name });
+
+  if (cards.length === 0) {
+    return { output: `No card found with name "${name}"` };
+  }
+
+  const card = cards[0];
+  const banlist = card.banlist_info;
+
+  if (!banlist || Object.keys(banlist).length === 0) {
+    return {
+      output: `**🚫 ${card.name}**\n\nThis card is **Legal** in all current formats! ✅`,
+      card: { name: card.name },
+      banlist: null
+    };
+  }
+
+  const formatEmojis: Record<string, string> = {
+    'TCG': '🇺🇸',
+    'OCG': '🇯🇵',
+    'GOAT': '🐐',
+    'Master Duel': '🎮',
+    'Speed Duel': '⚡',
+    'Duel Links': '📱'
+  };
+
+  const statusEmojis: Record<string, string> = {
+    'Forbidden': '⛔',
+    'Limited': '🔶',
+    'Semi-Limited': '🔷',
+    'Unlimited': '✅'
+  };
+
+  let output = `**🚫 ${card.name}**\n\n`;
+  output += `📋 **Banlist Status**\n`;
+  output += `━━━━━━━━━━━━━━━━━━━━━\n`;
+
+  Object.entries(banlist).forEach(([format, status]) => {
+    const formatEmoji = formatEmojis[format] || '🌐';
+    const statusEmoji = statusEmojis[status as string] || '⚪';
+    output += `${formatEmoji} ${format}: ${statusEmoji} ${status}\n`;
+  });
+
+  output += `━━━━━━━━━━━━━━━━━━━━━\n`;
+  output += `\n🔗 ${card.ygoprodeck_url || 'https://ygoprodeck.com'}`;
+
+  return {
+    output,
+    card: { name: card.name },
+    banlist
+  };
+}
+
 // Skill definition
 const skill = {
   name: 'yugioh',
@@ -358,6 +418,18 @@ const skill = {
         required: ['name']
       },
       handler: getCardPrices
+    },
+    
+    get_banlist_status: {
+      description: 'Check if a card is banned, limited, or legal in different formats',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Exact card name' }
+        },
+        required: ['name']
+      },
+      handler: getBanlistStatus
     }
   }
 };

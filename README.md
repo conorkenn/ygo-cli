@@ -1,6 +1,29 @@
 # Yu-Gi-Oh! Card Database CLI
 
-A command-line tool to search and explore the Yu-Gi-Oh! card database.
+A command-line tool and OpenClaw skill to search and explore the Yu-Gi-Oh! card database.
+
+## Two Ways to Use
+
+### 1. Terminal CLI
+```bash
+ygo "dark magician"
+ygo --random
+ygo --atk 3000
+```
+
+### 2. OpenClaw Skill (Conversation)
+```
+You: Search for "Dark Magician"
+Bot: [shows card details with image]
+
+You: Random card
+Bot: [random card]
+
+You: High ATK monsters
+Bot: [3000+ ATK monsters list]
+```
+
+---
 
 ## Features
 
@@ -120,6 +143,30 @@ ygo "blue eyes white dragon" --price
 ## API
 
 This tool uses the [YGOPRODECK API](https://ygoprodeck.com/api-guide/).
+
+## OpenClaw Skill
+
+This repo also includes an OpenClaw skill for conversation-based card lookups.
+
+### Installation
+The skill is auto-loaded from this repo when placed in `~/.openclaw/skills/ygo-skill/`.
+
+### Usage in Conversation
+```
+You: Get card "Dark Magician"
+You: Random card
+You: High ATK monsters
+You: Blue-Eyes archetype
+```
+
+### Skill Actions
+| Command | Description |
+|---------|-------------|
+| `search_cards` | Search with filters |
+| `get_card` | Get card by name |
+| `get_random_card` | Random card |
+| `get_high_atk` | 3000+ ATK monsters |
+| `get_archetype` | All cards in archetype |
 
 ## License
 

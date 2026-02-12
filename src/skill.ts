@@ -519,7 +519,7 @@ async function getArtwork(args: any, context: Context) {
 const skill = {
   name: 'yugioh',
   version: '2.0.0',
-  description: 'Search and lookup Yu-Gi-Oh! cards from the official database',
+  description: 'Search and lookup Yu-Gi-Oh! cards - get card details, prices, banlist status, rarities, artwork variants, and printing sets',
   
   actions: {
     search_cards: {

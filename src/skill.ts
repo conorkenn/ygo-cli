@@ -215,6 +215,62 @@ async function getArchetype(args: any, context: Context) {
   return { output, count: cards.length };
 }
 
+async function getCardPrices(args: any, context: Context) {
+  const { name, showImage = true } = args;
+
+  if (!name) {
+    throw new Error('Card name required');
+  }
+
+  const cards = await fetchCards({ name });
+
+  if (cards.length === 0) {
+    return { output: `No card found with name "${name}"` };
+  }
+
+  const card = cards[0];
+
+  if (!card.card_prices || card.card_prices.length === 0) {
+    return {
+      output: `**${card.name}**\n\nNo price data available for this card.`,
+      card: { name: card.name }
+    };
+  }
+
+  const prices = card.card_prices[0];
+  
+  let output = `**💰 ${card.name}**\n\n`;
+  output += `📊 **Prices**\n`;
+  output += `━━━━━━━━━━━━━━━━━━━━━\n`;
+  output += `💳 CardMarket: $${prices.cardmarket_price}\n`;
+  output += `🎴 TCGPlayer: $${prices.tcgplayer_price}\n`;
+  output += `📦 eBay: $${prices.ebay_price}\n`;
+  output += `📱 Amazon: $${prices.amazon_price}\n`;
+  output += `🏪 CoolStuffInc: $${prices.coolstuffinc_price}\n`;
+  output += `━━━━━━━━━━━━━━━━━━━━━\n`;
+
+  if (showImage && card.card_images?.[0]?.image_url) {
+    output += `\n${card.card_images[0].image_url}`;
+  }
+
+  output += `\n\n🔗 ${card.ygoprodeck_url || 'https://ygoprodeck.com'}`;
+
+  return {
+    output,
+    card: {
+      name: card.name,
+      prices: {
+        cardmarket: prices.cardmarket_price,
+        tcgplayer: prices.tcgplayer_price,
+        ebay: prices.ebay_price,
+        amazon: prices.amazon_price,
+        coolstuffinc: prices.coolstuffinc_price
+      },
+      image: card.card_images?.[0]?.image_url
+    }
+  };
+}
+
 // Skill definition
 const skill = {
   name: 'yugioh',
@@ -289,6 +345,19 @@ const skill = {
         required: ['archetype']
       },
       handler: getArchetype
+    },
+    
+    get_card_prices: {
+      description: 'Get card prices from various vendors',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Exact card name' },
+          showImage: { type: 'boolean', description: 'Show card image', default: true }
+        },
+        required: ['name']
+      },
+      handler: getCardPrices
     }
   }
 };

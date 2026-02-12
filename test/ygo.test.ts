@@ -39,6 +39,11 @@ const MOCK_CARDS = {
       { set_name: '2017 Mega-Tins', set_code: 'CT14-EN001', set_rarity: 'Secret Rare', set_rarity_code: '(ScR)', set_price: '9.66' },
       { set_name: 'Battle of Chaos', set_code: '25TH-EN001', set_rarity: 'Ultra Rare', set_rarity_code: '(UR)', set_price: '0.00' }
     ],
+    card_images: [
+      { id: 46986414, image_url: 'https://images.ygoprodeck.com/images/cards/46986414.jpg' },
+      { id: 46986415, image_url: 'https://images.ygoprodeck.com/images/cards/46986415.jpg' },
+      { id: 46986416, image_url: 'https://images.ygoprodeck.com/images/cards/46986416.jpg' }
+    ],
     misc_info: [{
       md_rarity: 'Ultra Rare',
       konami_id: 46986414
@@ -412,6 +417,37 @@ describe('YGO Skill Unit Tests', () => {
         expect(set.set_name.length).to.be.greaterThan(0);
         expect(set.set_code.length).to.be.greaterThan(0);
         expect(set.set_rarity.length).to.be.greaterThan(0);
+      }
+    });
+  });
+  
+  describe('get_artwork', () => {
+    it('should return multiple artworks for Dark Magician', async () => {
+      const cards = await fetchCards({ name: 'Dark Magician' });
+      const images = cards[0].card_images;
+      
+      expect(images).to.be.an('array');
+      expect(images.length).to.be.greaterThan(1);
+      expect(images[0]).to.have.property('id');
+      expect(images[0]).to.have.property('image_url');
+    });
+    
+    it('should handle cards with single artwork', async () => {
+      const cards = await fetchCards({ name: 'Dark Hole' });
+      const images = cards[0].card_images;
+      
+      expect(images).to.be.an('array');
+      expect(images.length).to.be.greaterThan(0);
+    });
+    
+    it('should have valid artwork structure', async () => {
+      const cards = await fetchCards({ name: 'Dark Magician' });
+      const images = cards[0].card_images;
+      
+      if (images.length > 0) {
+        const img = images[0];
+        expect(img.id).to.be.a('number');
+        expect(img.image_url).to.include('ygoprodeck.com');
       }
     });
   });

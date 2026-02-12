@@ -464,6 +464,57 @@ async function getCardSets(args: any, context: Context) {
   };
 }
 
+async function getArtwork(args: any, context: Context) {
+  const { name, limit = 5 } = args;
+
+  if (!name) {
+    throw new Error('Card name required');
+  }
+
+  const cards = await fetchCards({ name });
+
+  if (cards.length === 0) {
+    return { output: `No card found with name "${name}"` };
+  }
+
+  const card = cards[0];
+  const images = card.card_images || [];
+
+  if (images.length === 0) {
+    return {
+      output: `**🎨 ${card.name}**\n\nNo artwork images available for this card.`,
+      card: { name: card.name }
+    };
+  }
+
+  const limitedImages = images.slice(0, limit);
+
+  let output = `**🎨 ${card.name}**\n\n`;
+  output += `🖼️ **Artwork Variants** (${images.length} total)\n`;
+  output += `━━━━━━━━━━━━━━━━━━━━━\n`;
+
+  limitedImages.forEach((img: any, index: number) => {
+    output += `\n${index + 1}. 🖼️ Image ID: ${img.id}\n`;
+    output += `   ${img.image_url}\n`;
+  });
+
+  if (images.length > limitedImages.length) {
+    output += `\n...and ${images.length - limitedImages.length} more artworks\n`;
+  }
+
+  output += `━━━━━━━━━━━━━━━━━━━━━\n`;
+  output += `\n🔗 ${card.ygoprodeck_url || 'https://ygoprodeck.com'}`;
+
+  return {
+    output,
+    card: { name: card.name },
+    artworks: images.map((img: any) => ({
+      id: img.id,
+      url: img.image_url
+    }))
+  };
+}
+
 // Skill definition
 const skill = {
   name: 'yugioh',
@@ -590,6 +641,19 @@ const skill = {
         required: ['name']
       },
       handler: getCardSets
+    },
+    
+    get_artwork: {
+      description: 'Show all artwork variants for a card',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Exact card name' },
+          limit: { type: 'number', description: 'Max artworks to show', default: 5 }
+        },
+        required: ['name']
+      },
+      handler: getArtwork
     }
   }
 };

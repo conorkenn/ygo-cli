@@ -388,6 +388,82 @@ async function getCardRarity(args: any, context: Context) {
   };
 }
 
+async function getCardSets(args: any, context: Context) {
+  const { name, limit = 10, showImage = true } = args;
+
+  if (!name) {
+    throw new Error('Card name required');
+  }
+
+  const cards = await fetchCards({ name });
+
+  if (cards.length === 0) {
+    return { output: `No card found with name "${name}"` };
+  }
+
+  const card = cards[0];
+  const sets = card.card_sets || [];
+
+  if (sets.length === 0) {
+    return {
+      output: `**📚 ${card.name}**\n\nNo set information available for this card.`,
+      card: { name: card.name }
+    };
+  }
+
+  const rarityEmojis: Record<string, string> = {
+    'Common': '⚪',
+    'Rare': '🔵',
+    'Super Rare': '🔷',
+    'Ultra Rare': '🟣',
+    'Secret Rare': '🔴',
+    'Ultimate Rare': '🌟',
+    'Ghost Rare': '👻',
+    'Millennium Rare': '💎',
+    'Parallel Rare': '✨',
+    'Short Print': '📄',
+    'Duel Terminal Normal Rare': '📗',
+    'Duel Terminal Rare': '📘',
+    'Duel Terminal Ultra Rare': '📙',
+    'Unknown': '❓'
+  };
+
+  const limitedSets = sets.slice(0, limit);
+
+  let output = `**📚 ${card.name}**\n\n`;
+  output += `📦 **Printings** (${sets.length} total)\n`;
+  output += `━━━━━━━━━━━━━━━━━━━━━\n`;
+
+  limitedSets.forEach((set: any) => {
+    const rarityEmoji = rarityEmojis[set.set_rarity] || '❓';
+    output += `${rarityEmoji} ${set.set_name}\n`;
+    output += `   📋 ${set.set_code} | 💰 $${set.set_price}\n`;
+  });
+
+  if (sets.length > limitedSets.length) {
+    output += `\n...and ${sets.length - limitedSets.length} more sets\n`;
+  }
+
+  output += `━━━━━━━━━━━━━━━━━━━━━\n`;
+
+  if (showImage && card.card_images?.[0]?.image_url) {
+    output += `\n${card.card_images[0].image_url}`;
+  }
+
+  output += `\n\n🔗 ${card.ygoprodeck_url || 'https://ygoprodeck.com'}`;
+
+  return {
+    output,
+    card: { name: card.name },
+    sets: sets.map((s: any) => ({
+      name: s.set_name,
+      code: s.set_code,
+      rarity: s.set_rarity,
+      price: s.set_price
+    }))
+  };
+}
+
 // Skill definition
 const skill = {
   name: 'yugioh',
@@ -500,6 +576,20 @@ const skill = {
         required: ['name']
       },
       handler: getCardRarity
+    },
+    
+    get_card_sets: {
+      description: 'Get all printing sets a card has been released in',
+      parameters: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', description: 'Exact card name' },
+          limit: { type: 'number', description: 'Max sets to show', default: 10 },
+          showImage: { type: 'boolean', description: 'Show card image', default: true }
+        },
+        required: ['name']
+      },
+      handler: getCardSets
     }
   }
 };

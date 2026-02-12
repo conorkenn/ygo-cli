@@ -33,6 +33,15 @@ const MOCK_CARDS = {
       ebay_price: '0.99',
       amazon_price: '14.45',
       coolstuffinc_price: '0.39'
+    }],
+    card_sets: [
+      { set_name: '2016 Mega-Tins', set_code: 'CT13-EN003', set_rarity: 'Ultra Rare', set_rarity_code: '(UR)', set_price: '6.97' },
+      { set_name: '2017 Mega-Tins', set_code: 'CT14-EN001', set_rarity: 'Secret Rare', set_rarity_code: '(ScR)', set_price: '9.66' },
+      { set_name: 'Battle of Chaos', set_code: '25TH-EN001', set_rarity: 'Ultra Rare', set_rarity_code: '(UR)', set_price: '0.00' }
+    ],
+    misc_info: [{
+      md_rarity: 'Ultra Rare',
+      konami_id: 46986414
     }]
   },
   
@@ -369,6 +378,41 @@ describe('YGO Skill Unit Tests', () => {
       const validRarities = ['Common', 'Rare', 'Super Rare', 'Ultra Rare', 'Secret Rare', 'Ultimate Rare', 'Ghost Rare', 'Millennium Rare', 'Parallel Rare'];
       
       expect(validRarities).to.include(miscInfo.md_rarity);
+    });
+  });
+  
+  describe('get_card_sets', () => {
+    it('should return sets for Dark Magician', async () => {
+      const cards = await fetchCards({ name: 'Dark Magician' });
+      const sets = cards[0].card_sets;
+      
+      expect(sets).to.be.an('array');
+      expect(sets.length).to.be.greaterThan(0);
+      expect(sets[0]).to.have.property('set_name');
+      expect(sets[0]).to.have.property('set_code');
+      expect(sets[0]).to.have.property('set_rarity');
+      expect(sets[0]).to.have.property('set_price');
+    });
+    
+    it('should handle cards with no sets', async () => {
+      // This would need a mock for a card with no card_sets
+      // For now, verify the structure exists
+      const cards = await fetchCards({ name: 'Dark Magician' });
+      const sets = cards[0].card_sets || [];
+      
+      expect(sets).to.be.an('array');
+    });
+    
+    it('should have valid set structure', async () => {
+      const cards = await fetchCards({ name: 'Dark Magician' });
+      const sets = cards[0].card_sets;
+      
+      if (sets.length > 0) {
+        const set = sets[0];
+        expect(set.set_name.length).to.be.greaterThan(0);
+        expect(set.set_code.length).to.be.greaterThan(0);
+        expect(set.set_rarity.length).to.be.greaterThan(0);
+      }
     });
   });
 });

@@ -1,13 +1,17 @@
 {
   "name": "ygo-cli",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Yu-Gi-Oh! Card Database CLI - Search and explore the Yu-Gi-Oh! card database",
-  "main": "cli.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "bin": {
-    "ygo": "./cli.js"
+    "ygo": "./dist/cli.js"
   },
   "scripts": {
-    "test": "node cli.js --help"
+    "build": "tsc",
+    "dev": "ts-node src/cli.ts",
+    "test": "ts-node src/cli.ts --help",
+    "clean": "rm -rf dist"
   },
   "keywords": [
     "yugioh",
@@ -26,5 +30,10 @@
   "bugs": {
     "url": "https://github.com/conorkennedy/ygo-cli/issues"
   },
-  "homepage": "https://github.com/conorkennedy/ygo-cli"
+  "homepage": "https://github.com/conorkennedy/ygo-cli",
+  "devDependencies": {
+    "@types/node": "^25.2.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  }
 }

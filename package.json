@@ -7,6 +7,12 @@
   "bin": {
     "ygo": "./dist/cli.js"
   },
+  "openclaw": {
+    "skill": {
+      "name": "yugioh",
+      "description": "Search and lookup Yu-Gi-Oh! cards from conversation"
+    }
+  },
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/cli.ts",

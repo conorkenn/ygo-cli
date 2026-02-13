@@ -450,6 +450,133 @@ describe('YGO Skill Unit Tests', () => {
         expect(img.image_url).to.include('ygoprodeck.com');
       }
     });
+    
+    it('should have different image URLs for variants', async () => {
+      const cards = await fetchCards({ name: 'Dark Magician' });
+      const images = cards[0].card_images;
+      
+      if (images.length > 1) {
+        const urls = images.map((img: any) => img.image_url);
+        const uniqueUrls = new Set(urls);
+        expect(uniqueUrls.size).to.equal(urls.length);
+      }
+    });
+  });
+  
+  describe('edge cases', () => {
+    it('should handle very specific name search', async () => {
+      const cards = await fetchCards({ name: 'Blue-Eyes White Dragon' });
+      
+      expect(cards).to.have.lengthOf(1);
+      expect(cards[0].name).to.equal('Blue-Eyes White Dragon');
+    });
+    
+    it('should handle partial name search', async () => {
+      const cards = await fetchCards({ name: 'Dark Magician', limit: 3 });
+      
+      expect(cards).to.be.an('array');
+      expect(cards.length).to.be.greaterThan(0);
+      // All results should contain "Dark Magician" in name
+      cards.forEach((card: any) => {
+        expect(card.name).to.include('Dark Magician');
+      });
+    });
+    
+    it('should return reasonable card structure', async () => {
+      const cards = await fetchCards({ name: 'Dark Magician' });
+      
+      expect(cards).to.have.lengthOf(1);
+      const card = cards[0];
+      
+      // Core fields
+      expect(card).to.have.property('id');
+      expect(card).to.have.property('name');
+      expect(card).to.have.property('type');
+      expect(card).to.have.property('frameType');
+      expect(card).to.have.property('desc');
+      
+      // Optional but common fields
+      expect(card).to.have.property('card_images');
+      expect(card.card_images).to.be.an('array');
+      expect(card.card_images.length).to.be.greaterThan(0);
+    });
+    
+    it('should have consistent ATK/DEF for monsters', async () => {
+      const cards = await fetchCards({ name: 'Blue-Eyes White Dragon' });
+      
+      expect(cards).to.have.lengthOf(1);
+      const card = cards[0];
+      
+      // Normal monsters have ATK/DEF
+      expect(card).to.have.property('atk');
+      expect(card).to.have.property('def');
+      expect(card.atk).to.be.a('number');
+      expect(card.def).to.be.a('number');
+    });
+    
+    it('should return Spell/Trap cards without ATK/DEF', async () => {
+      const cards = await fetchCards({ name: 'Dark Hole' });
+      
+      expect(cards).to.have.lengthOf(1);
+      const card = cards[0];
+      
+      // Spell/Trap cards don't have ATK/DEF
+      expect(card.type).to.include('Spell');
+      expect(card).to.not.have.property('atk');
+      expect(card).to.not.have.property('def');
+    });
+  });
+  
+  describe('get_high_atk extended', () => {
+    it('should find high ATK monsters', async () => {
+      // Use get_random_card with misc=yes to get random monsters
+      const cards = await fetchCards({ misc: 'yes', limit: 20 });
+      const highAtkCards = cards.filter((c: any) => c.atk >= 2500);
+      
+      // At least some cards should be high ATK
+      expect(highAtkCards.length).to.be.greaterThan(0);
+    });
+    
+    it('should have ATK as numbers', async () => {
+      const cards = await fetchCards({ name: 'Blue-Eyes White Dragon' });
+      
+      expect(cards[0].atk).to.be.a('number');
+      expect(cards[0].atk).to.be.greaterThan(0);
+    });
+  });
+  
+  describe('card data completeness', () => {
+    it('should have valid card prices structure', async () => {
+      const cards = await fetchCards({ name: 'Dark Magician' });
+      const prices = cards[0].card_prices?.[0];
+      
+      if (prices) {
+        expect(prices).to.have.property('cardmarket_price');
+        expect(prices).to.have.property('tcgplayer_price');
+        expect(prices).to.have.property('ebay_price');
+        expect(prices).to.have.property('amazon_price');
+        expect(prices).to.have.property('coolstuffinc_price');
+      }
+    });
+    
+    it('should have ygoprodeck_url', async () => {
+      const cards = await fetchCards({ name: 'Dark Magician' });
+      
+      expect(cards[0]).to.have.property('ygoprodeck_url');
+      expect(cards[0].ygoprodeck_url).to.include('ygoprodeck.com');
+    });
+    
+    it('should have consistent data types', async () => {
+      const cards = await fetchCards({ name: 'Blue-Eyes White Dragon' });
+      const card = cards[0];
+      
+      expect(card.id).to.be.a('number');
+      expect(card.name).to.be.a('string');
+      expect(card.atk).to.be.a('number');
+      expect(card.def).to.be.a('number');
+      expect(card.level).to.be.a('number');
+      expect(card.card_images).to.be.an('array');
+    });
   });
 });
 

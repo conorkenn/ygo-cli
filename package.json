@@ -39,6 +39,7 @@
   "homepage": "https://github.com/conorkennedy/ygo-cli",
   "devDependencies": {
     "@types/chai": "^5.2.3",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/mocha": "^10.0.10",
     "@types/node": "^25.2.3",
@@ -47,5 +48,8 @@
     "mocha": "^11.7.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "cors": "^2.8.6"
   }
 }

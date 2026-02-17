@@ -4,11 +4,13 @@
  */
 
 import express from 'express';
+import cors from 'cors';
 import * as collection from './collection';
 import * as api from './api';
 import { Card } from './types';
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
@@ -253,26 +255,30 @@ app.get('/api/sets/:setName/cards', async (req, res) => {
   }
 });
 
-// Search sets (list all available sets)
+// Search sets (list all available sets from YGO API)
 app.get('/api/sets', async (req, res) => {
   try {
-    // Common sets for quick access
-    const commonSets = [
-      { name: 'Metal Raiders', code: 'MRD', year: '2002' },
-      { name: 'Legendary Collection 4: Joey\'s World Mega Pack', code: 'LCJW', year: '2009' },
-      { name: '25th Anniversary Tin: Dueling Mirrors', code: 'MP24', year: '2024' },
-      { name: 'Quarter Century Bonanza', code: 'RA03', year: '2024' },
-      { name: 'Speed Duel: Streets of Battle City', code: 'SBC1', year: '2023' },
-      { name: 'Ghosts From the Past: The 2nd Haunting', code: 'GFP2', year: '2023' },
-      { name: 'Magnificent Mavens', code: 'MAMA', year: '2022' },
-      { name: '2022 Tin of the Pharaoh\'s Gods', code: 'MP22', year: '2022' },
-      { name: 'Duelist League 18 participation cards', code: 'DL18', year: '2021' },
-      { name: 'Collectible Tins 2005', code: 'CT2', year: '2005' },
-      { name: 'Magician\'s Force', code: 'MFC', year: '2005' },
-      { name: 'Premium Gold', code: 'PGLD', year: '2014' },
-    ];
+    const response = await fetch(`${api.YGO_API_BASE}/cardsets.php`);
     
-    res.json({ sets: commonSets });
+    if (!response.ok) {
+      throw new Error('Failed to fetch sets');
+    }
+    
+    const jsonData: unknown = await response.json();
+    // The API returns a direct array, not wrapped in {data: [...]}
+    const sets: Array<{ set_name: string; set_code: string; tcg_date: string }> = Array.isArray(jsonData) ? jsonData : [];
+    
+    // Transform and sort by date (newest first)
+    const allSets = sets
+      .filter(s => s.set_name && s.set_code)
+      .map(s => ({
+        name: s.set_name,
+        code: s.set_code,
+        year: s.tcg_date ? s.tcg_date.slice(0, 4) : 'Unknown'
+      }))
+      .sort((a, b) => b.year.localeCompare(a.year));
+    
+    res.json({ sets: allSets });
   } catch (error) {
     res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }

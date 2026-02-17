@@ -217,6 +217,68 @@ app.get('/api/cards/:name/artwork', async (req, res) => {
 });
 
 // ====================
+// SET BROWSE ENDPOINTS
+// ====================
+
+// Get cards by set
+app.get('/api/sets/:setName/cards', async (req, res) => {
+  try {
+    const setName = req.params.setName;
+    
+    // Fetch cards from the set
+    const url = `${api.YGO_API_BASE}/cardinfo.php?cardset=${encodeURIComponent(setName)}&num=100&offset=0`;
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+      res.status(404).json({ error: 'Set not found' });
+      return;
+    }
+    
+    const jsonData: unknown = await response.json();
+    const cards = (jsonData as { data?: any[] }).data || [];
+    
+    res.json({ 
+      set: setName, 
+      cards: cards.map(c => ({
+        id: c.id,
+        name: c.name,
+        type: c.type,
+        rarity: c.misc_info?.[0]?.rarities?.[0] || 'Unknown',
+        price: c.card_prices?.[0]?.tcgplayer_price || '0.00'
+      })),
+      count: cards.length 
+    });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Search sets (list all available sets)
+app.get('/api/sets', async (req, res) => {
+  try {
+    // Common sets for quick access
+    const commonSets = [
+      { name: 'Metal Raiders', code: 'MRD', year: '2002' },
+      { name: 'Legendary Collection 4: Joey\'s World Mega Pack', code: 'LCJW', year: '2009' },
+      { name: '25th Anniversary Tin: Dueling Mirrors', code: 'MP24', year: '2024' },
+      { name: 'Quarter Century Bonanza', code: 'RA03', year: '2024' },
+      { name: 'Speed Duel: Streets of Battle City', code: 'SBC1', year: '2023' },
+      { name: 'Ghosts From the Past: The 2nd Haunting', code: 'GFP2', year: '2023' },
+      { name: 'Magnificent Mavens', code: 'MAMA', year: '2022' },
+      { name: '2022 Tin of the Pharaoh\'s Gods', code: 'MP22', year: '2022' },
+      { name: 'Duelist League 18 participation cards', code: 'DL18', year: '2021' },
+      { name: 'Collectible Tins 2005', code: 'CT2', year: '2005' },
+      { name: 'Magician\'s Force', code: 'MFC', year: '2005' },
+      { name: 'Premium Gold', code: 'PGLD', year: '2014' },
+    ];
+    
+    res.json({ sets: commonSets });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// ====================
 // START SERVER
 // ====================
 

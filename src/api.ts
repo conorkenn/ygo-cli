@@ -5,7 +5,7 @@
 
 import { Card, SearchParams } from './types';
 
-const YGO_API_BASE = 'https://db.ygoprodeck.com/api/v7';
+export const YGO_API_BASE = 'https://db.ygoprodeck.com/api/v7';
 
 /**
  * Fetch cards from the Yu-Gi-Oh! API

@@ -20,6 +20,11 @@ export interface Card {
   card_prices?: CardPrice[];
   humanReadableCardType?: string;
   typeline?: string[];
+  misc_info?: Array<{
+    konami_id?: number;
+    md_rarity?: string;
+  }>;
+  banlist_info?: Record<string, string>;
 }
 
 export interface CardSet {
@@ -55,6 +60,8 @@ export interface SearchParams {
   atk?: string;
   def?: string;
   level?: string;
+  misc?: string;
+  limit?: number;
 }
 
 export interface CLIOptions {

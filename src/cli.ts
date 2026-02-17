@@ -6,6 +6,7 @@
  */
 
 import * as api from './api';
+import * as collection from './collection';
 import { Card, CLIOptions, SearchParams } from './types';
 
 // ANSI color codes
@@ -104,6 +105,8 @@ function parseArgs(args: string[]): CLIOptions {
       options.price = true;
     } else if (arg === '--json') {
       options.json = true;
+    } else if (arg === '--simple') {
+      options.json = false;
     } else if (arg === '--type') {
       options.type = args[++i];
     } else if (arg === '--attribute') {
@@ -118,8 +121,6 @@ function parseArgs(args: string[]): CLIOptions {
       options.def = args[++i];
     } else if (arg === '--level') {
       options.level = args[++i];
-    } else if (arg === '--simple') {
-      options.json = false;
     } else if (arg.startsWith('-')) {
       console.error(`Unknown option: ${arg}`);
       process.exit(1);
@@ -147,8 +148,9 @@ ${COLORS.dim}Search and explore the Yu-Gi-Oh! card database${COLORS.reset}
 ${COLORS.bright}Usage:${COLORS.reset}
   ygo "card name" [options]
   ygo [options]
+  ygo collection [command]
 
-${COLORS.bright}Options:${COLORS.reset}
+${COLORS.bright}Search Options:${COLORS.reset}
   ${COLORS.cyan}--random, -r${COLORS.reset}        Get a random card
   ${COLORS.cyan}--type <type>${COLORS.reset}       Filter by card type
   ${COLORS.cyan}--attribute <attr>${COLORS.reset}  Filter by attribute
@@ -159,8 +161,14 @@ ${COLORS.bright}Options:${COLORS.reset}
   ${COLORS.cyan}--level <value>${COLORS.reset}     Filter by level
   ${COLORS.cyan}--price${COLORS.reset}             Show price information
   ${COLORS.cyan}--json${COLORS.reset}              Output as JSON
-  ${COLORS.cyan}--help${COLORS.reset}              Show this help
-  ${COLORS.cyan}--version${COLORS.reset}           Show version
+
+${COLORS.bright}Collection Commands:${COLORS.reset}
+  ${COLORS.cyan}collection add <name>${COLORS.reset}    Add card to collection
+  ${COLORS.cyan}collection remove <name>${COLORS.reset} Remove card from collection
+  ${COLORS.cyan}collection list${COLORS.reset}          List all cards in collection
+  ${COLORS.cyan}collection value${COLORS.reset}         Show total collection value
+  ${COLORS.cyan}collection export${COLORS.reset}        Export as YDK format
+  ${COLORS.cyan}collection clear${COLORS.reset}         Clear entire collection
 
 ${COLORS.bright}Examples:${COLORS.reset}
   ygo "dark magician"
@@ -168,6 +176,9 @@ ${COLORS.bright}Examples:${COLORS.reset}
   ygo --type "XYZ Monster"
   ygo --attribute DARK --type "Effect Monster"
   ygo "blue eyes" --price --json
+  ygo collection add "Dark Magician"
+  ygo collection list
+  ygo collection value
 
 ${COLORS.bright}API:${COLORS.reset} https://ygoprodeck.com
 `);
@@ -178,6 +189,13 @@ ${COLORS.bright}API:${COLORS.reset} https://ygoprodeck.com
  */
 export async function main(): Promise<void> {
   const args = process.argv.slice(2);
+  
+  // Handle collection commands
+  if (args[0] === 'collection') {
+    await handleCollectionCommand(args.slice(1));
+    return;
+  }
+  
   const options = parseArgs(args);
   
   // Show help
@@ -232,6 +250,64 @@ export async function main(): Promise<void> {
       console.log(`\n${COLORS.dim}... and ${cards.length - 10} more cards${COLORS.reset}`);
     }
     
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    console.error(`Error: ${message}`);
+    process.exit(1);
+  }
+}
+
+/**
+ * Handle collection commands
+ */
+async function handleCollectionCommand(args: string[]): Promise<void> {
+  const command = args[0];
+  const cardName = args.slice(1).join(' ');
+  
+  try {
+    switch (command) {
+      case 'add': {
+        if (!cardName) {
+          console.log('Usage: ygo collection add "card name"');
+          process.exit(1);
+        }
+        const result = await collection.addToCollection(cardName);
+        console.log(`✅ Added ${result} to collection`);
+        break;
+      }
+      case 'remove': {
+        if (!cardName) {
+          console.log('Usage: ygo collection remove "card name"');
+          process.exit(1);
+        }
+        const result = collection.removeFromCollection(cardName);
+        console.log(`✅ ${result}`);
+        break;
+      }
+      case 'list': {
+        const result = await collection.listCollection();
+        console.log(result);
+        break;
+      }
+      case 'value': {
+        const result = await collection.getCollectionValue();
+        console.log(result);
+        break;
+      }
+      case 'export': {
+        const result = collection.exportCollection();
+        console.log(result);
+        break;
+      }
+      case 'clear': {
+        collection.clearCollection();
+        console.log('✅ Collection cleared');
+        break;
+      }
+      default:
+        console.log('Unknown collection command. Use: add, remove, list, value, export, clear');
+        process.exit(1);
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error(`Error: ${message}`);

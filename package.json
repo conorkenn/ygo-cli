@@ -16,7 +16,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/cli.ts",
-    "test": "ts-node src/cli.ts --help",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "clean": "rm -rf dist"
   },
   "keywords": [
@@ -47,7 +48,8 @@
     "express": "^5.2.1",
     "mocha": "^11.7.5",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "cors": "^2.8.6"

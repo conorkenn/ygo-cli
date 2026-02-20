@@ -3,17 +3,17 @@
  * Tests for YDK export, value calculation, and stats
  */
 
-import { expect } from 'chai';
+import { describe, it, expect } from 'vitest';
 
 describe('Collection Logic', () => {
   describe('YDK Export Format', () => {
     it('should generate valid YDK format with header', () => {
       const output = '#created by YGO CLI Collection\n#main\n#extra\n!side\n';
       
-      expect(output).to.include('#created by YGO CLI Collection');
-      expect(output).to.include('#main');
-      expect(output).to.include('#extra');
-      expect(output).to.include('!side');
+      expect(output).toContain('#created by YGO CLI Collection');
+      expect(output).toContain('#main');
+      expect(output).toContain('#extra');
+      expect(output).toContain('!side');
     });
     
     it('should output card IDs in main section', () => {
@@ -22,9 +22,9 @@ describe('Collection Logic', () => {
       cardIds.forEach(id => output += `${id}\n`);
       output += '#extra\n!side\n';
       
-      expect(output).to.include('46986414');
-      expect(output).to.include('89631139');
-      expect(output).to.include('12345678');
+      expect(output).toContain('46986414');
+      expect(output).toContain('89631139');
+      expect(output).toContain('12345678');
     });
     
     it('should handle duplicate cards (multiple copies)', () => {
@@ -36,13 +36,12 @@ describe('Collection Logic', () => {
       }
       
       const lines = output.split('\n').filter(l => l === String(cardId));
-      expect(lines.length).to.equal(3);
+      expect(lines.length).toBe(3);
     });
   });
   
   describe('Collection Value Calculation', () => {
     it('should calculate total value correctly', () => {
-      // Mock: Dark Magician x2 @ $10 = $20, Blue-Eyes x1 @ $15 = $15
       const prices: Record<string, number> = {
         'Dark Magician': 10.00,
         'Blue-Eyes White Dragon': 15.00
@@ -58,7 +57,7 @@ describe('Collection Logic', () => {
         total += (prices[name] || 0) * count;
       }
       
-      expect(total).to.equal(35.00); // (10 * 2) + (15 * 1)
+      expect(total).toBe(35.00);
     });
     
     it('should handle missing prices as zero', () => {
@@ -76,7 +75,7 @@ describe('Collection Logic', () => {
         total += (prices[name] || 0) * count;
       }
       
-      expect(total).to.equal(5.00); // Only Known Card has price
+      expect(total).toBe(5.00);
     });
     
     it('should handle empty collection', () => {
@@ -88,31 +87,31 @@ describe('Collection Logic', () => {
         total += (prices[name] || 0) * count;
       }
       
-      expect(total).to.equal(0);
+      expect(total).toBe(0);
     });
   });
   
   describe('Collection Statistics', () => {
     it('should count unique cards', () => {
-      const collection = {
+      const collection: Record<string, { count: number }> = {
         'Card A': { count: 2 },
         'Card B': { count: 1 },
         'Card C': { count: 3 }
       };
       
       const uniqueCards = Object.keys(collection).length;
-      expect(uniqueCards).to.equal(3);
+      expect(uniqueCards).toBe(3);
     });
     
     it('should count total copies', () => {
-      const collection = {
+      const collection: Record<string, { count: number }> = {
         'Card A': { count: 2 },
         'Card B': { count: 1 },
         'Card C': { count: 3 }
       };
       
       const totalCopies = Object.values(collection).reduce((sum, c) => sum + c.count, 0);
-      expect(totalCopies).to.equal(6);
+      expect(totalCopies).toBe(6);
     });
     
     it('should calculate average card value', () => {
@@ -125,13 +124,13 @@ describe('Collection Logic', () => {
       const values = Object.values(prices);
       const average = values.reduce((a, b) => a + b, 0) / values.length;
       
-      expect(average).to.equal(20.00);
+      expect(average).toBe(20.00);
     });
   });
   
   describe('Card Name Matching', () => {
     it('should find card case-insensitively', () => {
-      const collection = {
+      const collection: Record<string, { count: number }> = {
         'Dark Magician': { count: 1 },
         'Blue-Eyes White Dragon': { count: 1 }
       };
@@ -139,11 +138,11 @@ describe('Collection Logic', () => {
       const searchTerm = 'dark magician';
       const found = Object.keys(collection).find(k => k.toLowerCase() === searchTerm);
       
-      expect(found).to.equal('Dark Magician');
+      expect(found).toBe('Dark Magician');
     });
     
     it('should handle partial name match', () => {
-      const collection = {
+      const collection: Record<string, { count: number }> = {
         'Dark Magician': { count: 1 },
         'Dark Magic Circle': { count: 1 }
       };
@@ -151,7 +150,7 @@ describe('Collection Logic', () => {
       const searchTerm = 'dark mag';
       const matches = Object.keys(collection).filter(k => k.toLowerCase().includes(searchTerm.toLowerCase()));
       
-      expect(matches.length).to.equal(2);
+      expect(matches.length).toBe(2);
     });
   });
   
@@ -164,19 +163,19 @@ describe('Collection Logic', () => {
         cardId: 12345678
       };
       
-      expect(entry).to.have.property('name');
-      expect(entry).to.have.property('count');
-      expect(entry).to.have.property('added');
-      expect(entry).to.have.property('cardId');
+      expect(entry).toHaveProperty('name');
+      expect(entry).toHaveProperty('count');
+      expect(entry).toHaveProperty('added');
+      expect(entry).toHaveProperty('cardId');
     });
     
-    it('should reject invalid count', () => {
-      const validCounts = [1, 2, 3, 60]; // YGO allows up to 60 in main + 15 extra
+    it('should validate count is positive', () => {
+      const validCounts = [1, 2, 3, 60];
       const invalidCounts = [0, -1];
       
-      validCounts.forEach(c => expect(c).to.be.greaterThan(0));
-      expect(invalidCounts[0]).to.equal(0);
-      expect(invalidCounts[1]).to.be.below(0);
+      validCounts.forEach(c => expect(c).toBeGreaterThan(0));
+      expect(invalidCounts[0]).toBe(0);
+      expect(invalidCounts[1]).toBeLessThan(0);
     });
   });
 });

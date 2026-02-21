@@ -6,6 +6,7 @@
 import express from 'express';
 import cors from 'cors';
 import * as collection from './collection';
+import * as wishlist from './wishlist';
 import * as api from './api';
 import { Card } from './types';
 
@@ -279,6 +280,77 @@ app.get('/api/sets', async (req, res) => {
       .sort((a, b) => b.year.localeCompare(a.year));
     
     res.json({ sets: allSets });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// ====================
+// WISHLIST ENDPOINTS
+// ====================
+
+// Get full wishlist
+app.get('/api/wishlist', async (req, res) => {
+  try {
+    const wl = wishlist.loadWishlist();
+    const entries = Object.values(wl);
+    
+    const cards = await Promise.all(
+      entries.map(async (entry) => {
+        const cardData = await api.fetchCards({ name: entry.name });
+        const price = cardData[0]?.card_prices?.[0]?.tcgplayer_price || '0.00';
+        return {
+          ...entry,
+          price: parseFloat(price)
+        };
+      })
+    );
+    
+    res.json({ wishlist: cards, count: cards.length });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Add card to wishlist
+app.post('/api/wishlist/add', async (req, res) => {
+  try {
+    const { cardName, priority } = req.body;
+    
+    if (!cardName) {
+      res.status(400).json({ error: 'cardName is required' });
+      return;
+    }
+    
+    const result = await wishlist.addToWishlist(cardName, priority || 'medium');
+    res.json({ success: true, message: result });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Remove card from wishlist
+app.post('/api/wishlist/remove', async (req, res) => {
+  try {
+    const { cardName } = req.body;
+    
+    if (!cardName) {
+      res.status(400).json({ error: 'cardName is required' });
+      return;
+    }
+    
+    const result = wishlist.removeFromWishlist(cardName);
+    res.json({ success: true, message: result });
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
+  }
+});
+
+// Clear wishlist
+app.delete('/api/wishlist', (req, res) => {
+  try {
+    wishlist.clearWishlist();
+    res.json({ success: true, message: 'Wishlist cleared' });
   } catch (error) {
     res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
   }
